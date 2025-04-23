@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 
 const Home = ({ user }) => {
   const [posts, setPosts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
@@ -20,6 +21,15 @@ const Home = ({ user }) => {
       await deleteDoc(doc(db, "posts", id));
     }
   };
+
+  const filteredPosts = posts.filter((post) => {
+    const search = searchTerm.toLowerCase();
+    return (
+      post.title.toLowerCase().includes(search) ||
+      post.content.toLowerCase().includes(search) ||
+      post.authorEmail.toLowerCase().includes(search)
+    );
+  });
 
   return (
     <div style={styles.container}>
@@ -39,9 +49,19 @@ const Home = ({ user }) => {
         )}
       </div>
 
+      <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+        <input
+          type="text"
+          placeholder="🔍 Search by title, content or author email..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={styles.searchInput}
+        />
+      </div>
+
       <div>
-        {posts.length > 0 ? (
-          posts.map((post) => (
+        {filteredPosts.length > 0 ? (
+          filteredPosts.map((post) => (
             <div key={post.id} style={styles.card}>
               <h3 style={styles.title}>{post.title}</h3>
               <p style={styles.content}>{post.content}</p>
@@ -54,7 +74,7 @@ const Home = ({ user }) => {
             </div>
           ))
         ) : (
-          <p style={styles.noPosts}>Nothing here yet... 💭</p>
+          <p style={styles.noPosts}>Nothing found... Try another keyword 🔍</p>
         )}
       </div>
     </div>
@@ -144,6 +164,17 @@ const styles = {
     fontSize: "1.2rem",
     color: "#ccc",
     marginTop: "3rem",
+  },
+  searchInput: {
+    padding: "0.8rem 1.2rem",
+    width: "80%",
+    borderRadius: "30px",
+    border: "1px solid #ccc",
+    fontSize: "1rem",
+    outline: "none",
+    background: "rgba(255, 255, 255, 0.1)",
+    color: "#fff",
+    boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
   },
 };
 
